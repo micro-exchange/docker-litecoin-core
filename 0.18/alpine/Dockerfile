@@ -1,5 +1,5 @@
 # Build stage for BerkeleyDB
-FROM alpine as berkeleydb
+FROM alpine:3.14 as berkeleydb
 
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add autoconf
@@ -18,12 +18,12 @@ RUN mkdir -p ${BERKELEYDB_PREFIX}
 WORKDIR /${BERKELEYDB_VERSION}/build_unix
 
 RUN ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=${BERKELEYDB_PREFIX}
-RUN make -j4
+RUN make -j`nproc`
 RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
 # Build stage for Bitcoin Core
-FROM alpine as litecoin-core
+FROM alpine:3.14 as litecoin-core
 
 COPY --from=berkeleydb /opt /opt
 
@@ -41,16 +41,7 @@ RUN apk --no-cache add libtool
 RUN apk --no-cache add linux-headers
 RUN apk --no-cache add zeromq-dev
 RUN apk --no-cache add git
-RUN set -ex \
-  && for key in \
-    90C8019E36C2E964 \
-  ; do \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" || \
-    gpg --batch --keyserver pgp.mit.edu --recv-keys "$key" || \
-    gpg --batch --keyserver keyserver.pgp.com --recv-keys "$key" || \
-    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
-    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" ; \
-  done
+RUN apk --no-cache add openssl-dev
 
 ENV LITECOIN_VERSION=0.18.1
 ENV LITECOIN_PREFIX=/opt/litecoin-${LITECOIN_VERSION}
@@ -75,7 +66,7 @@ RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/incl
     --with-utils \
     --with-libs \
     --with-daemon
-RUN make -j4
+RUN make -j`nproc`
 RUN make install
 RUN strip ${LITECOIN_PREFIX}/bin/litecoin-cli
 RUN strip ${LITECOIN_PREFIX}/bin/litecoin-tx
@@ -84,7 +75,7 @@ RUN strip ${LITECOIN_PREFIX}/lib/liblitecoinconsensus.a
 RUN strip ${LITECOIN_PREFIX}/lib/liblitecoinconsensus.so.0.0.0
 
 # Build stage for compiled artifacts
-FROM alpine
+FROM alpine:3.14
 
 RUN adduser -S litecoin
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
