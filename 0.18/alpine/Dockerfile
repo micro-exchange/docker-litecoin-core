@@ -83,6 +83,7 @@ RUN apk --no-cache add \
   boost-filesystem \
   boost-system \
   boost-thread \
+  boost-chrono \
   libevent \
   libzmq \
   su-exec
