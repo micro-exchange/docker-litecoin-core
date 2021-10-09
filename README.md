@@ -6,7 +6,8 @@ A Litecoin Core docker image.
 
 ## Tags
 
-- `0.18`, `0.18.1`, `latest` ([2.2/Dockerfile](https://github.com/micro-exchange/docker-litecoin-core/blob/master/0.18/Dockerfile))
+- `0.18`, `0.18.1`, `latest` ([0.18/Dockerfile](https://github.com/micro-exchange/docker-litecoin-core/blob/master/0.18/Dockerfile))
+- `0.18-alpine`, `0.18.1-alpine` ([0.18/alpine/Dockerfile](https://github.com/micro-exchange/docker-litecoin-core/blob/master/0.18/****/Dockerfile))
 
 **Picking the right tag**
 

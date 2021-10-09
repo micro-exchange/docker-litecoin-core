@@ -47,7 +47,7 @@ ENV LITECOIN_PREFIX=/opt/litecoin-${LITECOIN_VERSION}
 
 RUN git clone https://github.com/litecoin-project/litecoin.git /litecoin-${LITECOIN_VERSION} \
     && cd /litecoin-${LITECOIN_VERSION} \
-    && git checkout v0.18.1
+    && git checkout v${LITECOIN_VERSION}
 
 WORKDIR /litecoin-${LITECOIN_VERSION}
 
