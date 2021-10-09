@@ -1,5 +1,5 @@
 # Build stage for BerkeleyDB
-FROM alpine:3.14 as berkeleydb
+FROM alpine as berkeleydb
 
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add autoconf
@@ -23,7 +23,7 @@ RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
 # Build stage for Bitcoin Core
-FROM alpine:3.14 as litecoin-core
+FROM alpine as litecoin-core
 
 COPY --from=berkeleydb /opt /opt
 
@@ -71,11 +71,11 @@ RUN make install
 RUN strip ${LITECOIN_PREFIX}/bin/litecoin-cli
 RUN strip ${LITECOIN_PREFIX}/bin/litecoin-tx
 RUN strip ${LITECOIN_PREFIX}/bin/litecoind
-RUN strip ${LITECOIN_PREFIX}/lib/liblitecoinconsensus.a
-RUN strip ${LITECOIN_PREFIX}/lib/liblitecoinconsensus.so.0.0.0
+RUN strip ${LITECOIN_PREFIX}/lib/libbitcoinconsensus.a
+RUN strip ${LITECOIN_PREFIX}/lib/libbitcoinconsensus.so.0.0.0
 
 # Build stage for compiled artifacts
-FROM alpine:3.14
+FROM alpine
 
 RUN adduser -S litecoin
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories

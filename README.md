@@ -12,7 +12,9 @@ A Litecoin Core docker image.
 **Picking the right tag**
 
 - `microexchange/litecoin-core:latest`: points to the latest stable release available of Litecoin Core. Use this only if you know what you're doing as upgrading Litecoin Core blindly is a risky procedure.
+- `microexchange/litecoin-core:alpine`: same as above but using the Alpine Linux distribution (a resource efficient Linux distribution with security in mind, but not officially supported by the Litecoin Core team — use at your own risk).
 - `microexchange/litecoin-core:<version>`: based on a Ubuntu image, points to a specific version branch or release of Litecoin Core. Uses the pre-compiled binaries which are fully tested by the Litecoin Core team.
+- `microexchange/litecoin-core:<version>-alpine`: same as above but using the Alpine Linux distribution.
 
 ## What is Litecoin Core?
 
