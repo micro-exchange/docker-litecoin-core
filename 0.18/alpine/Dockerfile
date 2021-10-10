@@ -22,7 +22,7 @@ RUN make -j`nproc`
 RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
-# Build stage for Bitcoin Core
+# Build stage for Litecoin Core
 FROM alpine as litecoin-core
 
 COPY --from=berkeleydb /opt /opt
@@ -100,8 +100,10 @@ VOLUME ["/home/litecoin/.litecoin"]
 
 EXPOSE 8332 8333 18332 18333 18444
 
+RUN ["chmod", "+x", "/entrypoint.sh"]
+
 ENTRYPOINT ["/entrypoint.sh"]
 
-RUN litecoind -version | grep "Litecoin Core version v${LITECOIN_VERSION}"
+RUN litecoind -version | grep "Litecoin Core Daemon version v${LITECOIN_VERSION}"
 
 CMD ["litecoind"]

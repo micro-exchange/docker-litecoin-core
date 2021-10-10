@@ -22,7 +22,7 @@ RUN make -j`nproc`
 RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
-# Build stage for Ravencoin Core
+# Build stage for Litecoin Core
 FROM ubuntu as litecoin-core
 
 RUN apt-get update
@@ -97,6 +97,8 @@ COPY docker-entrypoint.sh /entrypoint.sh
 VOLUME ["/home/litecoin/.litecoin"]
 
 EXPOSE 9332 9333 19332 19333 19444
+
+RUN ["chmod", "+x", "/entrypoint.sh"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 
