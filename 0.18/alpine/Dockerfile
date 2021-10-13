@@ -22,15 +22,38 @@ RUN make -j`nproc`
 RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
-# Build stage for Litecoin Core
-FROM alpine as litecoin-core
+# Build stage for Boost
+FROM alpine as boost
 
 COPY --from=berkeleydb /opt /opt
 
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN apk --no-cache add openssl
+RUN apk --no-cache add linux-headers
+RUN apk --no-cache add build-base
+RUN apk --no-cache add git
+
+ENV BOOST_VERSION=1.77.0
+ENV BOOST_PREFIX=/opt/boost-${BOOST_VERSION}
+
+RUN wget http://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//./_}.tar.gz
+RUN tar -xzf *.tar.gz
+RUN mkdir -p ${BOOST_PREFIX}
+RUN mv "boost_${BOOST_VERSION//./_}" /boost-${BOOST_VERSION}
+
+WORKDIR /boost-${BOOST_VERSION}
+
+RUN ./bootstrap.sh --prefix=${BOOST_PREFIX}
+RUN ./b2 -j `nproc` install
+
+# Build stage for Litecoin Core
+FROM alpine as litecoin-core
+
+COPY --from=boost /opt /opt
+
+RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add autoconf
 RUN apk --no-cache add automake
-RUN apk --no-cache add boost-dev
 RUN apk --no-cache add build-base
 RUN apk --no-cache add chrpath
 RUN apk --no-cache add file
@@ -55,8 +78,11 @@ WORKDIR /litecoin-${LITECOIN_VERSION}
 RUN sed -i '/AC_PREREQ/a\AR_FLAGS=cr' src/univalue/configure.ac
 RUN sed -i '/AX_PROG_CC_FOR_BUILD/a\AR_FLAGS=cr' src/secp256k1/configure.ac
 RUN sed -i s:sys/fcntl.h:fcntl.h: src/compat.h
+
 RUN ./autogen.sh
-RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/include/ \
+RUN ./configure LDFLAGS="-L`ls -d /opt/db*`/lib/ -L`ls -d /opt/boost*`/lib/" \
+    CPPFLAGS="-I`ls -d /opt/db*`/include/ -I`ls -d /opt/boost*`/include/" \
+    --with-boost-libdir="`ls -d /opt/boost*`/lib/" \
     --prefix=${LITECOIN_PREFIX} \
     --mandir=/usr/share/man \
     --disable-tests \
@@ -66,6 +92,7 @@ RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/incl
     --with-utils \
     --with-libs \
     --with-daemon
+
 RUN make -j`nproc`
 RUN make install
 RUN strip ${LITECOIN_PREFIX}/bin/litecoin-cli
@@ -80,10 +107,6 @@ FROM alpine
 RUN adduser -S litecoin
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add \
-  boost-filesystem \
-  boost-system \
-  boost-thread \
-  boost-chrono \
   libevent \
   libzmq \
   su-exec
@@ -91,6 +114,9 @@ RUN apk --no-cache add \
 ENV LITECOIN_DATA=/home/litecoin/.litecoin
 ENV LITECOIN_VERSION=0.18.1
 ENV LITECOIN_PREFIX=/opt/litecoin-${LITECOIN_VERSION}
+ENV BOOST_VERSION=1.77.0
+ENV BOOST_PREFIX=/opt/boost-${BOOST_VERSION}
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${BOOST_PREFIX}/lib
 ENV PATH=${LITECOIN_PREFIX}/bin:$PATH
 
 COPY --from=litecoin-core /opt /opt
